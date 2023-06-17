@@ -1,6 +1,7 @@
 import streamlit as st
 import pickle
 import tensorflow as tf
+import numpy as np
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -15,6 +16,15 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(2, activation='softmax')
 ])
 """
+
+model_LSTM = tf.keras.Sequential([
+    tf.keras.layers.Embedding(input_dim=10000, output_dim=40),
+    tf.keras.layers.LSTM(64),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(2, activation='softmax')
+])
+
 @st.cache_resource
 def load_models():
     """
@@ -23,7 +33,7 @@ def load_models():
     Fungsi load_models() akan membuat model FCDUG dan menerapkan weights dari file .h5 
 
     """
-    model.load_weights("LSTM.h5")
+    model_LSTM.load_weights("LSTM.h5")
 
     return model
 
@@ -47,15 +57,18 @@ def main():
             
             #melakukan tokenisasi
             tokenizer = Tokenizer(num_words=10000, oov_token='<UNK>')
-            tokenizer.fit_on_texts(submit_button) 
+            #tokenizer.fit_on_texts(submit_button) 
+            sequences = tokenizer.texts_to_sequences(raw_text)
+            padded = pad_sequences(sequences, maxlen=200, padding='post', truncating='post')
+            p = np.argmax(model.predict(padded))
 
             #melakukan padding sequence
-            def get_sequences(tokenizer, tweets):
-                sequences = tokenizer.texts_to_sequences(tweets)
-                padded_sequences = pad_sequences(sequences, truncating='post', maxlen=40, padding='post')
-                return padded_sequences 
+            # def get_sequences(tokenizer, tweets):
+            #     sequences = tokenizer.texts_to_sequences(tweets)
+            #     padded_sequences = pad_sequences(sequences, truncating='post', maxlen=40, padding='post')
+            #     return padded_sequences 
 
-            train_sequences = get_sequences(tokenizer, submit_button)
+            # train_sequences = get_sequences(tokenizer, submit_button)
 
 
             #model
