@@ -1,10 +1,22 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
+import pandas as pd
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
+def tokenisasi():
+    data = pd.read_csv('depresi (3).csv')
+    data.text = data.text.astype(str)
+    text = data['text']
+    tokenizer = Tokenizer(num_words=10000, oov_token='<UNK>')
+    tokenizer.fit_on_texts(text)
+    word_index = tokenizer.word_index
+
+    return tokenizer
+
+token = tokenisasi()
 
 @st.cache_resource
 def load_models():
@@ -37,10 +49,10 @@ def preprocess_text(sentence):
 
     # Preprocessing
     # melakukan tokenisasi
-    tokenizer = Tokenizer(num_words=10000, oov_token='<UNK>')
-    tokenizer.fit_on_texts(sentence)
+    #tokenizer = Tokenizer(num_words=10000, oov_token='<UNK>')
     #tokenizer.fit_on_texts(sentence)
-    sequences = tokenizer.texts_to_sequences(sentence)
+    #tokenizer.fit_on_texts(sentence)
+    sequences = token.texts_to_sequences(sentence)
     #sequences = tokenizer.fit_on_texts(sentence)
     print(sequences)
     padded = pad_sequences(sequences, maxlen=40, padding='post', truncating='post')
@@ -68,7 +80,7 @@ def predict(text_predict):
 
 def main():
     st.title("Text Classification Depression")
-    st.subheader("Hello Streamlit")
+    st.subheader("Architecture used -> LSTM+Augmentation")
 
     menu = ["Home", "About"]
     choice = st.sidebar.selectbox("Menu", menu)
